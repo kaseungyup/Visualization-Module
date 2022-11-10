@@ -1,0 +1,6 @@
+<launch>
+
+    <!--launch optical flow publisher-->
+    <node name="of" pkg="of_pub" type="of_publisher.py" output="screen"/>
+    
+</launch>

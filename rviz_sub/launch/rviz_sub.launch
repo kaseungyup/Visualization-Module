@@ -1,0 +1,12 @@
+<launch>
+
+    <!--fixed frame-->
+    <node name="my_frame" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 map my_frame 10"/>
+
+    <!--launch rviz with settings-->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rviz_sub)/rviz/config.rviz"/>
+    
+    <!--launch subscriber python file-->
+    <node name="sub" pkg="rviz_sub" type="rviz_sub.py" output="screen"/>
+    
+</launch>

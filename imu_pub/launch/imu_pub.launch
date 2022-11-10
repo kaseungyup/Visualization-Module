@@ -1,0 +1,6 @@
+<launch>
+
+    <!--launch imu publisher-->
+    <node name="imu" pkg="imu_pub" type="imu_pub.py" output="screen"/>
+    
+</launch>

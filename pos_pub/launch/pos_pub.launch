@@ -1,0 +1,6 @@
+<launch>
+
+    <!--launch position publisher-->
+    <node name="pos" pkg="pos_pub" type="pos_pub.py" output="screen"/>
+    
+</launch>
