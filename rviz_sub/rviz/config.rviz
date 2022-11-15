@@ -9,6 +9,7 @@ Panels:
         - /MarkerArray1
         - /MarkerArray2
         - /MarkerArray3
+        - /MarkerArray4
       Splitter Ratio: 0.5
     Tree Height: 721
   - Class: rviz/Selection
@@ -72,12 +73,19 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /visualization_engine/traj
+      Marker Topic: /visualization_engine/meshes
       Name: MarkerArray
       Namespaces:
         "": true
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /visualization_engine/lines
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Queue Size: 100
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

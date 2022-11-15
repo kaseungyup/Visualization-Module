@@ -10,10 +10,8 @@ from scripts.extended_kalman import EKF
 
 # ROS includes
 import rospy
-from visualization_msgs.msg import Marker, MarkerArray
-from std_msgs.msg import ColorRGBA, String, Header, ColorRGBA
-from geometry_msgs.msg import Vector3, Quaternion, Pose, Point
-from tf.transformations import quaternion_from_euler
+from visualization_msgs.msg import Marker
+from std_msgs.msg import ColorRGBA, String, ColorRGBA
 
 Hz = 50
 D2R = np.pi/180
@@ -107,7 +105,7 @@ if __name__ == '__main__':
     tmr_plot = TimerClass(_name='Plot',_HZ=Hz,_MAX_SEC=np.inf,_VERBOSE=True)
     apriltag = ApriltagData()
     imu = IMUData()
-    # flag = FlagData()
+    #flag = FlagData()
 
     rs_pos_data = np.empty(shape=(0,2))
     acc_data = []
@@ -115,16 +113,16 @@ if __name__ == '__main__':
     yaw_data = []
     yaw_val = 0.0
 
-    # traj = np.load("qpos_dlpg/trajectory.npy")
-    # x_traj = traj[:,0]
-    # y_traj = traj[:,1]
+    traj = np.load("qpos_dlpg/trajectory.npy")
+    x_traj = traj[:,0]
+    y_traj = traj[:,1]
 
     # Visualizer
     V = VisualizerClass(name='simple viz',HZ=Hz)
 
-    # V.reset_traj()  
-    # V.append_traj(x_array=x_traj,y_array=y_traj,z=0.0,scale=Vector3(0.01,0,0),
-    #             frame_id='map',color=ColorRGBA(1.0,1.0,1.0,1.0),marker_type=Marker.LINE_STRIP)
+    V.reset_lines()  
+    V.append_line(x_array=x_traj,y_array=y_traj,z=0.0,r=0.01,
+                frame_id='map',color=ColorRGBA(1.0,1.0,1.0,1.0),marker_type=Marker.LINE_STRIP)
 
     # Start the loop 
     tmr_plot.start()
@@ -135,11 +133,12 @@ if __name__ == '__main__':
             # print ("Plot [%.3f]sec."%(tmr.sec_elps))
 
             # Reset
-            V.reset_markers()            
+            V.reset_markers()
+            V.reset_meshes()           
             V.reset_texts()
             x = [0]; y = [0]
             
-            # if flag.flag:
+            #if flag.flag:
             if True:
                 rs_pos_data = np.append(rs_pos_data, np.array([[apriltag.x, apriltag.y]]), axis=0)
                 if tick > 1:
@@ -168,29 +167,36 @@ if __name__ == '__main__':
             yaw_val = yaw_val + yaw_data[-1]
 
             # integrated yaw value (Red Arrow)
-            mahony_rpy = "Mahony: Red  Apriltag: Blue\nRoll: %f° Pitch: %f° Yaw: %f°"%(-roll*R2D,-pitch*R2D,yaw_val*2.5/Hz*R2D)
-            V.append_text(x=x[-1],y=y[-1],z=0.3,r=1.0,text=mahony_rpy,scale=Vector3(0,0,0.1),
+            mahony_rpy = "Mahony\nRoll: %f° Pitch: %f° Yaw: %f°"%((np.pi-roll)*R2D,-pitch*R2D,yaw_val*2.5/Hz*R2D)
+            V.append_text(x=x[-1],y=y[-1],z=0.3,r=0.1,text=mahony_rpy,
                 frame_id='map',color=ColorRGBA(1.0,1.0,1.0,0.5))
-            V.append_marker(Quaternion(*quaternion_from_euler(-roll,-pitch,yaw_val*2.5/Hz)),Vector3(0.2,0.06,0.06),x=x[-1],y=y[-1],z=0,frame_id='map',
-                color=ColorRGBA(1.0,0.0,0.0,0.5),marker_type=Marker.ARROW)
+            # V.append_marker(Quaternion(*quaternion_from_euler(-roll,-pitch,yaw_val*2.5/Hz)),Vector3(0.2,0.06,0.06),x=x[-1],y=y[-1],z=0,frame_id='map',
+            #     color=ColorRGBA(1.0,0.0,0.0,0.5),marker_type=Marker.ARROW)
             
+            stl_path = 'file:///home/rilab/Project/Snapbot-Demo/ROS_viz_engine/snapbot.stl'
+            V.append_mesh(x=x[-1],y=y[-1],z=0,scale=1.0,dae_path=stl_path,
+                frame_id='map', color=ColorRGBA(1.0,1.0,1.0,0.5),
+                roll=np.pi-roll,pitch=-pitch,yaw=yaw_val*2.5/Hz)
+
             # apriltag yaw value (Blue Arrow)
-            V.append_marker(Quaternion(*quaternion_from_euler(-roll,-pitch,apriltag.yaw)),Vector3(0.2,0.06,0.06),x=x[-1],y=y[-1],z=0,frame_id='map',
-                color=ColorRGBA(0.0,0.0,1.0,0.5),marker_type=Marker.ARROW)            
+            # V.append_marker(Quaternion(*quaternion_from_euler(-roll,-pitch,apriltag.yaw)),Vector3(0.2,0.06,0.06),x=x[-1],y=y[-1],z=0,frame_id='map',
+            #     color=ColorRGBA(0.0,0.0,1.0,0.5),marker_type=Marker.ARROW)            
 
             # time
             time = "%.2fsec"%(tmr_plot.sec_elps)
-            V.append_text(x=0,y=0,z=0.5,r=1.0,text=time, scale=Vector3(0,0,0.1),
+            V.append_text(x=0,y=0,z=0.5,r=1.0,text=time,
                 frame_id='map',color=ColorRGBA(1.0,1.0,1.0,0.5))
 
             V.publish_markers()
+            V.publish_meshes()
             V.publish_texts()
             tmr_plot.end()
 
-        V.publish_traj()
+        V.publish_lines()
         rospy.sleep(1e-8)
 
     # Exit handler here
     V.delete_markers()
+    V.delete_meshes()
     V.delete_texts()
-    # V.delete_traj()
+    V.delete_lines()
