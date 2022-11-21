@@ -113,7 +113,7 @@ if __name__ == '__main__':
     yaw_data = []
     yaw_val = 0.0
 
-    traj = np.load("qpos_dlpg/trajectory.npy")
+    traj = np.load("scripts/trajectory.npy")
     x_traj = traj[:,0]
     y_traj = traj[:,1]
 
@@ -173,7 +173,7 @@ if __name__ == '__main__':
             # V.append_marker(Quaternion(*quaternion_from_euler(-roll,-pitch,yaw_val*2.5/Hz)),Vector3(0.2,0.06,0.06),x=x[-1],y=y[-1],z=0,frame_id='map',
             #     color=ColorRGBA(1.0,0.0,0.0,0.5),marker_type=Marker.ARROW)
             
-            stl_path = 'file:///home/rilab/Project/Snapbot-Demo/ROS_viz_engine/snapbot.stl'
+            stl_path = 'scripts/snapbot.stl'
             V.append_mesh(x=x[-1],y=y[-1],z=0,scale=1.0,dae_path=stl_path,
                 frame_id='map', color=ColorRGBA(1.0,1.0,1.0,0.5),
                 roll=np.pi-roll,pitch=-pitch,yaw=yaw_val*2.5/Hz)
@@ -192,6 +192,8 @@ if __name__ == '__main__':
             V.publish_texts()
             tmr_plot.end()
 
+        V.append_line(x_array=x,y_array=y,z=0.0,r=0.01,
+                frame_id='map',color=ColorRGBA(0.0,0.0,1.0,1.0),marker_type=Marker.LINE_STRIP)
         V.publish_lines()
         rospy.sleep(1e-8)
 

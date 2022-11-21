@@ -71,6 +71,7 @@ def optical_flow(idx):
     delay = int(1000/fps)
 
     while cap.isOpened():
+        start = time.time()
         ret,frame = cap.read()
         frame = Rotate(frame,180)
         if not ret: break
@@ -83,9 +84,14 @@ def optical_flow(idx):
             drawFlow(frame,flow)
             prev = gray
         
+        end = time.time()
+        fps = 1 / (end-start)
+        cv2.putText(frame, f"{fps:.2f} FPS", (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.imshow('OpticalFlow-Farneback', frame)
+
         if cv2.waitKey(delay) == 27:
             break
+        
     cap.release()
     cv2.destroyAllWindows()
 
