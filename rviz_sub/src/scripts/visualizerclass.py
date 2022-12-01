@@ -42,12 +42,13 @@ class VisualizerClass(object):
         self.pub_lines = rospy.Publisher("/visualization_engine/lines",
                         MarkerArray, queue_size=5)
 
-    def append_marker(self,x=0.0,y=0.0,z=0.0,r=0.1,frame_id='map',
+    def append_marker(self,x=0.0,y=0.0,z=0.0,frame_id='map',
+            roll=0.0,pitch=0.0,yaw=0.0,scale=Vector3(),
             color=ColorRGBA(0.0,1.0,0.0,0.5),marker_type=Marker.SPHERE):
         marker = Marker(
                 type=marker_type,
-                pose=Pose(Point(x, y, z), Quaternion(0, 0, 0, 1)),
-                scale=Vector3(r, r, r),
+                pose=Pose(Point(x, y, z), Quaternion(*quaternion_from_euler(roll,pitch,yaw))),
+                scale=scale,
                 header=Header(frame_id=frame_id,stamp=rospy.get_rostime()),
                 action=Marker.ADD,
                 color=color,
@@ -69,7 +70,7 @@ class VisualizerClass(object):
                 color=color,
                 lifetime=rospy.Duration(secs=1/self.HZ)
                 )
-        for i in range(1, x_array.shape[0]):
+        for i in range(1, np.array(x_array).shape[0]):
             marker.points.append(Point(x_array[i],y_array[i],z))
         self.n_line += 1
         if(self.n_line > self.LINES_MAX):

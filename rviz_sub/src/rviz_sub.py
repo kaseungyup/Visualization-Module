@@ -11,9 +11,10 @@ from scripts.extended_kalman import EKF
 # ROS includes
 import rospy
 from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Vector3
 from std_msgs.msg import ColorRGBA, String, ColorRGBA
 
-Hz = 50
+Hz  = 30
 D2R = np.pi/180
 R2D = 180/np.pi
 
@@ -72,12 +73,16 @@ class IMUData():
     def callback(self, data):
         self.isReady_imu = True
         array = data.data.split()
-        self.acc_x = -float(array[1])
-        self.acc_y = float(array[0])
-        self.acc_z = float(array[2])
-        self.gyro_x = float(array[3])
-        self.gyro_y = float(array[4])
-        self.gyro_z = float(array[5])
+        try:
+            self.acc_x = -float(array[1])
+            self.acc_y = float(array[0])
+            self.acc_z = float(array[2])
+            self.gyro_x = float(array[3])
+            self.gyro_y = float(array[4])
+            self.gyro_z = float(array[5])
+        except:
+            pass
+
 
 class FlagData():
     def __init__(self):
@@ -113,16 +118,16 @@ if __name__ == '__main__':
     yaw_data = []
     yaw_val = 0.0
 
-    traj = np.load("scripts/trajectory.npy")
+    traj = np.load("/home/hansoo/catkin_ws_2/src/Visualization-Module/rviz_sub/src/scripts/trajectory.npy")
     x_traj = traj[:,0]
     y_traj = traj[:,1]
-
     # Visualizer
     V = VisualizerClass(name='simple viz',HZ=Hz)
 
     V.reset_lines()  
     V.append_line(x_array=x_traj,y_array=y_traj,z=0.0,r=0.01,
                 frame_id='map',color=ColorRGBA(1.0,1.0,1.0,1.0),marker_type=Marker.LINE_STRIP)
+    V.publish_lines()
 
     # Start the loop 
     tmr_plot.start()
@@ -130,7 +135,6 @@ if __name__ == '__main__':
         if tmr_plot.do_run(): # plot (HZ)
 
             tick = tmr_plot.tick
-            # print ("Plot [%.3f]sec."%(tmr.sec_elps))
 
             # Reset
             V.reset_markers()
@@ -167,34 +171,36 @@ if __name__ == '__main__':
             yaw_val = yaw_val + yaw_data[-1]
 
             # integrated yaw value (Red Arrow)
-            mahony_rpy = "Mahony\nRoll: %f° Pitch: %f° Yaw: %f°"%((np.pi-roll)*R2D,-pitch*R2D,yaw_val*2.5/Hz*R2D)
+            mahony_rpy = "Mahony\nRoll: %.2f° Pitch: %.2f° Yaw: %.2f°"%((np.pi-roll)*R2D,-pitch*R2D,yaw_val*2.5/Hz*R2D)
             V.append_text(x=x[-1],y=y[-1],z=0.3,r=0.1,text=mahony_rpy,
                 frame_id='map',color=ColorRGBA(1.0,1.0,1.0,0.5))
-            # V.append_marker(Quaternion(*quaternion_from_euler(-roll,-pitch,yaw_val*2.5/Hz)),Vector3(0.2,0.06,0.06),x=x[-1],y=y[-1],z=0,frame_id='map',
-            #     color=ColorRGBA(1.0,0.0,0.0,0.5),marker_type=Marker.ARROW)
-            
-            stl_path = 'scripts/snapbot.stl'
+            # V.append_marker(x=x[-1],y=y[-1],z=0,frame_id='map',roll=-roll,pitch=-pitch,yaw=yaw_val*2.5/Hz,
+                # scale=Vector3(0.2,0.06,0.06),color=ColorRGBA(1.0,0.0,0.0,0.5),marker_type=Marker.ARROW)
+            # V.append_line(x_array=x_traj,y_array=y_traj,z=0.0,r=0.01,
+                        # frame_id='map',color=ColorRGBA(1.0,1.0,1.0,1.0),marker_type=Marker.LINE_STRIP)
+            stl_path = "file:///home/hansoo/catkin_ws_2/src/Visualization-Module/rviz_sub/src/scripts/snapbot.stl"
             V.append_mesh(x=x[-1],y=y[-1],z=0,scale=1.0,dae_path=stl_path,
                 frame_id='map', color=ColorRGBA(1.0,1.0,1.0,0.5),
                 roll=np.pi-roll,pitch=-pitch,yaw=yaw_val*2.5/Hz)
 
             # apriltag yaw value (Blue Arrow)
-            # V.append_marker(Quaternion(*quaternion_from_euler(-roll,-pitch,apriltag.yaw)),Vector3(0.2,0.06,0.06),x=x[-1],y=y[-1],z=0,frame_id='map',
-            #     color=ColorRGBA(0.0,0.0,1.0,0.5),marker_type=Marker.ARROW)            
+            V.append_marker(x=x[-1],y=y[-1],z=0,frame_id='map',roll=-roll,pitch=-pitch,yaw=apriltag.yaw,
+                scale=Vector3(0.2,0.06,0.06),color=ColorRGBA(1.0,0.0,0.0,0.5),marker_type=Marker.ARROW)
 
             # time
             time = "%.2fsec"%(tmr_plot.sec_elps)
-            V.append_text(x=0,y=0,z=0.5,r=1.0,text=time,
+            V.append_text(x=0,y=0,z=0.5,r=0.2,text=time,
                 frame_id='map',color=ColorRGBA(1.0,1.0,1.0,0.5))
 
             V.publish_markers()
             V.publish_meshes()
             V.publish_texts()
-            tmr_plot.end()
+            V.publish_lines()
+            # tmr_plot.end()
 
-        V.append_line(x_array=x,y_array=y,z=0.0,r=0.01,
-                frame_id='map',color=ColorRGBA(0.0,0.0,1.0,1.0),marker_type=Marker.LINE_STRIP)
-        V.publish_lines()
+        # V.append_line(x_array=x,y_array=y,z=0.0,r=0.01,
+                # frame_id='map',color=ColorRGBA(0.0,0.0,1.0,1.0),marker_type=Marker.LINE_STRIP)
+        # V.publish_lines()
         rospy.sleep(1e-8)
 
     # Exit handler here
