@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Python includes
-import math, time
+import os, math, time
 import numpy as np
 from scripts.timerclass import TimerClass
 from scripts.visualizerclass import VisualizerClass
@@ -118,9 +118,12 @@ if __name__ == '__main__':
     yaw_data = []
     yaw_val = 0.0
 
-    traj = np.load("/home/hansoo/catkin_ws_2/src/Visualization-Module/rviz_sub/src/scripts/trajectory.npy")
+    CURRENT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+
+    traj = np.load(CURRENT_DIRECTORY + "/trajectory.npy")
     x_traj = traj[:,0]
     y_traj = traj[:,1]
+
     # Visualizer
     V = VisualizerClass(name='simple viz',HZ=Hz)
 
@@ -178,7 +181,7 @@ if __name__ == '__main__':
                 # scale=Vector3(0.2,0.06,0.06),color=ColorRGBA(1.0,0.0,0.0,0.5),marker_type=Marker.ARROW)
             # V.append_line(x_array=x_traj,y_array=y_traj,z=0.0,r=0.01,
                         # frame_id='map',color=ColorRGBA(1.0,1.0,1.0,1.0),marker_type=Marker.LINE_STRIP)
-            stl_path = "file:///home/hansoo/catkin_ws_2/src/Visualization-Module/rviz_sub/src/scripts/snapbot.stl"
+            stl_path = "file://" + CURRENT_DIRECTORY + "/snapbot_low_resol.stl"
             V.append_mesh(x=x[-1],y=y[-1],z=0,scale=1.0,dae_path=stl_path,
                 frame_id='map', color=ColorRGBA(1.0,1.0,1.0,0.5),
                 roll=np.pi-roll,pitch=-pitch,yaw=yaw_val*2.5/Hz)
